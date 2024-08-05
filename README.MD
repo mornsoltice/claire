@@ -8,13 +8,13 @@ add this to your cargo.toml
 
 ```toml
 [dependencies]
-claire = "0.1.0"
+claire_vector = "0.1.0"
 ```
 
 or you can run command
 
 ```sh
-cargo add claire
+cargo add claire_vector
 ```
 
 # examples

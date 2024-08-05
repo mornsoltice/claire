@@ -1,5 +1,5 @@
 [package]
-name = "claire"
+name = "claire_vector"
 version = "0.1.0"
 authors = ["k m nandyka"]
 edition = "2021"
