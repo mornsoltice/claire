@@ -8,13 +8,13 @@ add this to your cargo.toml
 
 ```toml
 [dependencies]
-charlotte = "0.1.0"
+claire = "0.1.0"
 ```
 
 or you can run command
 
 ```sh
-cargo add charlotte
+cargo add claire
 ```
 
 # examples
