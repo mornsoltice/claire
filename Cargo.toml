@@ -1,0 +1,15 @@
+[package]
+name = "claire"
+version = "0.1.0"
+authors = ["k m nandyka"]
+edition = "2021"
+description = "claire is a rust lib for vector calculus"
+license = "MIT"
+repository = "https://github.com/mornsoltice/claire"
+keywords = ["vector", "calculus", "math"]
+categories = ["science", "mathematics"]
+readme = "README.MD"
+
+[dependencies]
+rand = "0.8.5"
+dyn-clone = "1.0.17"
