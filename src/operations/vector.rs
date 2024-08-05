@@ -284,11 +284,11 @@ pub enum Function {
 }
 
 impl Function {
-    pub fn call(&self, x: f64, y: Option<f64>, z: Option<f64>) -> f64 {
+    pub fn expression(&self) -> &str {
         match self {
-            Function::F1D(f) => f.call(x),
-            Function::F2D(f) => f.call(x, y.unwrap()),
-            Function::F3D(f) => f.call(x, y.unwrap(), z.unwrap()),
+            Function::F1D(func) => &func.expression,
+            Function::F2D(func) => &func.expression,
+            Function::F3D(func) => &func.expression,
         }
     }
 }
@@ -643,35 +643,24 @@ impl VectorFunction {
         match self {
             VectorFunction::TwoD(v) => {
                 if let Some(f) = &v.potential {
-                    return f(args[0], args[1]);
+                    return match f {
+                        Function::F1D(func) => func.call(args[0]),
+                        Function::F2D(func) => func.call(args[0], args[1]),
+                        Function::F3D(func) => func.call(args[0], args[1], args[2]),
+                    };
                 } else {
                     f64::NAN
                 }
             }
             VectorFunction::ThreeD(v) => {
                 if let Some(f) = &v.potential {
-                    return f(args[0], args[1], args[2]);
+                    return match f {
+                        Function::F1D(func) => func.call(args[0]),
+                        Function::F2D(func) => func.call(args[0], args[1]),
+                        Function::F3D(func) => func.call(args[0], args[1], args[2]),
+                    };
                 } else {
                     f64::NAN
-                }
-            }
-        }
-    }
-
-    pub fn potential_expression(&self) -> String {
-        match self {
-            VectorFunction::TwoD(v) => {
-                if let Some(p) = v.potential.clone() {
-                    p.expression()
-                } else {
-                    String::from("")
-                }
-            }
-            VectorFunction::ThreeD(v) => {
-                if let Some(p) = v.potential.clone() {
-                    p.expression()
-                } else {
-                    String::from("")
                 }
             }
         }
