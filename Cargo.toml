@@ -1,6 +1,6 @@
 [package]
 name = "claire_vector"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["k m nandyka"]
 edition = "2021"
 description = "claire is a rust lib for vector calculus"
