@@ -1,5 +1,5 @@
-//! Claire: A Rust library for vector calculus.
-//! This crate provides easy-to-use tools for multivariable and vector calculus in Rust, enabling
+//! claire: a Rust library for vector calculus.
+//! this crate provides easy-to-use tools for multivariable and vector calculus in Rust, enabling
 //! numerical computation of various operations efficiently.
 
 use dyn_clone::DynClone;
@@ -324,6 +324,88 @@ macro_rules! f {
         })
     };
 }
+
+// partial derivatives
+#[doc(hidden)]
+pub fn ddx_s(f: &Function, args: Vec<f64>) -> f64 {
+    match f {
+        Function::F1D(f) => (f.call(args[0] + Δ) - f.call(args[0])) / Δ,
+        Function::F2D(f) => (f.call(args[0] + Δ, args[1]) - f.call(args[0], args[1])) / Δ,
+        Function::F3D(f) => {
+            (f.call(args[0] + Δ, args[1], args[2]) - f.call(args[0], args[1], args[2])) / Δ
+        }
+    }
+}
+
+#[doc(hidden)]
+pub fn ddy_s(f: &Function, args: Vec<f64>) -> f64 {
+    match f {
+        Function::F1D(_) => {
+            panic!("Can't take partial derivative with respect to y of a 1D function")
+        }
+        Function::F2D(f) => (f.call(args[0], args[1] + Δ) - f.call(args[0], args[1])) / Δ,
+        Function::F3D(f) => {
+            (f.call(args[0], args[1] + Δ, args[2]) - f.call(args[0], args[1], args[2])) / Δ
+        }
+    }
+}
+
+#[doc(hidden)]
+pub fn ddz_s(f: &Function, args: Vec<f64>) -> f64 {
+    match f {
+        Function::F1D(_) => {
+            panic!("Can't take partial derivative with respect to z of a 1D function")
+        }
+        Function::F2D(_) => {
+            panic!("Can't take partial derivative with respect to z of a 2D function")
+        }
+        Function::F3D(f) => {
+            (f.call(args[0], args[1], args[2] + Δ) - f.call(args[0], args[1], args[2])) / Δ
+        }
+    }
+}
+
+// Macros for partial derivatives
+#[macro_export]
+macro_rules! claire_pdx {
+    ($f:expr, $x:expr) => {
+        ddx_s(&$f, vec![$x as f64])
+    };
+    ($f:expr, $x:expr, $y:expr) => {
+        ddx_s(&$f, vec![$x as f64, $y as f64])
+    };
+    ($f:expr, $x:expr, $y:expr, $z:expr) => {
+        ddx_s(&$f, vec![$x as f64, $y as f64, $z as f64])
+    };
+}
+
+#[macro_export]
+macro_rules! claire_pdy {
+    ($f:expr, $x:expr, $y:expr) => {
+        ddy_s(&$f, vec![$x as f64, $y as f64])
+    };
+    ($f:expr, $x:expr, $y:expr, $z:expr) => {
+        ddy_s(&$f, vec![$x as f64, $y as f64, $z as f64])
+    };
+}
+
+#[macro_export]
+macro_rules! claire_pdz {
+    ($f:expr, $x:expr, $y:expr, $z:expr) => {
+        ddz_s(&$f, vec![$x as f64, $y as f64, $z as f64])
+    };
+}
+
+impl Function {
+    fn clone(&self) -> Function {
+        match self {
+            Function::F1D(f) => Function::F1D(f.clone()),
+            Function::F2D(f) => Function::F2D(f.clone()),
+            Function::F3D(f) => Function::F3D(f.clone()),
+        }
+    }
+}
+
 // Implement more operations as needed...
 
 // Macros for vector creation and modulus calculation
@@ -343,3 +425,4 @@ macro_rules! md {
         modulus(&$v)
     };
 }
+
