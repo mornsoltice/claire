@@ -1,5 +1,5 @@
-use claire::operations::vector::Vector;
-use claire::vector;
+use claire_vector::operations::vector::Vector;
+use claire_vector::vector;
 
 fn main() {
     // Vector operations
