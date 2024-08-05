@@ -1,6 +1,7 @@
 //! claire: a Rust library for vector calculus.
 //! this crate provides easy-to-use tools for multivariable and vector calculus in Rust, enabling
 //! numerical computation of various operations efficiently.
+#![feature(unboxed_closures, fn_traits)]
 
 use dyn_clone::DynClone;
 use rand::Rng;
@@ -406,6 +407,534 @@ impl Function {
     }
 }
 
+// creates a 1-3 variable function
+// Function trait implementations
+impl FnOnce<(f64,)> for Function {
+    type Output = f64;
+
+    extern "rust-call" fn call_once(self, args: (f64,)) -> Self::Output {
+        match self {
+            Function::F1D(f) => f.call(args.0),
+            Function::F2D(_) => panic!("1D function can't take 2 arguments"),
+            Function::F3D(_) => panic!("1D function can't take 3 arguments"),
+        }
+    }
+}
+
+impl Fn<(f64,)> for Function {
+    extern "rust-call" fn call(&self, args: (f64,)) -> Self::Output {
+        match self {
+            Function::F1D(f) => f.call(args.0),
+            Function::F2D(_) => panic!("1D function can't take 2 arguments"),
+            Function::F3D(_) => panic!("1D function can't take 3 arguments"),
+        }
+    }
+}
+
+impl FnMut<(f64,)> for Function {
+    extern "rust-call" fn call_mut(&mut self, args: (f64,)) -> Self::Output {
+        match self {
+            Function::F1D(f) => f.call(args.0),
+            Function::F2D(_) => panic!("1D function can't take 2 arguments"),
+            Function::F3D(_) => panic!("1D function can't take 3 arguments"),
+        }
+    }
+}
+
+impl FnOnce<(f64, f64)> for Function {
+    type Output = f64;
+
+    extern "rust-call" fn call_once(self, args: (f64, f64)) -> Self::Output {
+        match self {
+            Function::F1D(_) => panic!("1D function can't take 2 arguments"),
+            Function::F2D(f) => f.call(args.0, args.1),
+            Function::F3D(_) => panic!("3D function can't take 2 arguments"),
+        }
+    }
+}
+
+impl Fn<(f64, f64)> for Function {
+    extern "rust-call" fn call(&self, args: (f64, f64)) -> Self::Output {
+        match self {
+            Function::F1D(_) => panic!("1D function can't take 2 arguments"),
+            Function::F2D(f) => f.call(args.0, args.1),
+            Function::F3D(_) => panic!("3D function can't take 2 arguments"),
+        }
+    }
+}
+
+impl FnMut<(f64, f64)> for Function {
+    extern "rust-call" fn call_mut(&mut self, args: (f64, f64)) -> Self::Output {
+        match self {
+            Function::F1D(_) => panic!("1D function can't take 2 arguments"),
+            Function::F2D(f) => f.call(args.0, args.1),
+            Function::F3D(_) => panic!("3D function can't take 2 arguments"),
+        }
+    }
+}
+
+impl FnOnce<(f64, f64, f64)> for Function {
+    type Output = f64;
+
+    extern "rust-call" fn call_once(self, args: (f64, f64, f64)) -> Self::Output {
+        match self {
+            Function::F1D(_) => panic!("1D function can't take 2 arguments"),
+            Function::F2D(_) => panic!("2D function can't take 3 arguments"),
+            Function::F3D(f) => f.call(args.0, args.1, args.2),
+        }
+    }
+}
+
+impl Fn<(f64, f64, f64)> for Function {
+    extern "rust-call" fn call(&self, args: (f64, f64, f64)) -> Self::Output {
+        match self {
+            Function::F1D(_) => panic!("1D function can't take 2 arguments"),
+            Function::F2D(_) => panic!("2D function can't take 3 arguments"),
+            Function::F3D(f) => f.call(args.0, args.1, args.2),
+        }
+    }
+}
+
+impl FnMut<(f64, f64, f64)> for Function {
+    extern "rust-call" fn call_mut(&mut self, args: (f64, f64, f64)) -> Self::Output {
+        match self {
+            Function::F1D(_) => panic!("1D function can't take 2 arguments"),
+            Function::F2D(_) => panic!("2D function can't take 3 arguments"),
+            Function::F3D(f) => f.call(args.0, args.1, args.2),
+        }
+    }
+}
+
+impl FnOnce<(Vector,)> for Function {
+    type Output = f64;
+
+    extern "rust-call" fn call_once(self, args: (Vector,)) -> Self::Output {
+        match self {
+            Function::F1D(_) => panic!("1D function can't take a vector as an argument"),
+            Function::F2D(f) => match args.0 {
+                Vector::TwoD(v) => f.call(v.x, v.y),
+                Vector::ThreeD(_) => panic!("3D vector passed to 2D function"),
+            },
+            Function::F3D(f) => {
+                match args.0 {
+                    Vector::TwoD(v) => f.call(v.x, v.y, 0.), // 2D vector passed to 3D function with z = 0
+                    Vector::ThreeD(v) => f.call(v.x, v.y, v.z),
+                }
+            }
+        }
+    }
+}
+
+impl Fn<(Vector,)> for Function {
+    extern "rust-call" fn call(&self, args: (Vector,)) -> Self::Output {
+        match self {
+            Function::F1D(_) => panic!("1D function can't take a vector as an argument"),
+            Function::F2D(f) => match args.0 {
+                Vector::TwoD(v) => f.call(v.x, v.y),
+                Vector::ThreeD(_) => panic!("3D vector passed to 2D function"),
+            },
+            Function::F3D(f) => match args.0 {
+                Vector::TwoD(_) => panic!("2D vector passed to 3D function"),
+                Vector::ThreeD(v) => f.call(v.x, v.y, v.z),
+            },
+        }
+    }
+}
+
+impl FnMut<(Vector,)> for Function {
+    extern "rust-call" fn call_mut(&mut self, args: (Vector,)) -> Self::Output {
+        match self {
+            Function::F1D(_) => panic!("1D function can't take a vector as an argument"),
+            Function::F2D(f) => match args.0 {
+                Vector::TwoD(v) => f.call(v.x, v.y),
+                Vector::ThreeD(_) => panic!("3D vector passed to 2D function"),
+            },
+            Function::F3D(f) => match args.0 {
+                Vector::TwoD(_) => panic!("2D vector passed to 3D function"),
+                Vector::ThreeD(v) => f.call(v.x, v.y, v.z),
+            },
+        }
+    }
+}
+
+/// Calculus limits for functions
+/// # Limit
+/// The limit macro takes in a [Function] of n variables and n f64's, representing the point to take
+/// the limit at. It also uses the => syntax, i actually want to add -> but it is not allowed so i use =>
+/// ## Examples
+///
+/// use claire_vector::*;
+/// let f:Function = f!(x, (x.powi(2)-25.)/(x-5.)); // (x^2-25)/(x-5)
+/// let a:f64 = limit!(f => 5);
+/// assert_eq!(a, 10.0); // Analytically it's 10
+
+#[macro_export]
+macro_rules! limit {
+    ($f:expr => $x:expr) => {
+        limit_s(&$f, vec![$x as f64])
+    };
+    ($f:expr => $x:expr, $y:expr) => {
+        limit_s(&$f, vec![$x as f64, $y as f64])
+    };
+    ($f:expr => $x:expr, $y:expr, $z:expr) => {
+        limit_s(&$f, vec![$x as f64, $y as f64, $z as f64])
+    };
+}
+
+#[doc(hidden)]
+pub fn limit_s(f: &Function, args: Vec<f64>) -> f64 {
+    let delta = 1e-10;
+    match f {
+        Function::F1D(func) => {
+            let x = args[0];
+            (func.call(x + delta) + func.call(x - delta)) / 2.0
+        }
+        Function::F2D(func) => {
+            let (x, y) = (args[0], args[1]);
+            (func.call(x + delta, y) + func.call(x - delta, y)) / 2.0
+        }
+        Function::F3D(func) => {
+            let (x, y, z) = (args[0], args[1], args[2]);
+            (func.call(x + delta, y, z) + func.call(x - delta, y, z)) / 2.0
+        }
+    }
+}
+
+// Vector Functions
+#[derive(Clone)]
+#[doc(hidden)]
+pub struct _VectorFunction2D {
+    pub f1: Function,
+    pub f2: Function,
+    pub potential: Option<Function>,
+}
+
+#[derive(Clone)]
+#[doc(hidden)]
+pub struct _VectorFunction3D {
+    pub f1: Function,
+    pub f2: Function,
+    pub f3: Function,
+    pub potential: Option<Function>,
+}
+
+/// Vector functions for 2D and 3D spaces
+/// # Vector Function
+/// Vector functions are functions of two or three variables that return two or three-dimensional [Vector]s. \
+/// You can create one using the [vector_function!] macro. \
+/// Vector functions evaluate just like [Function]s and rust functions, and you can even evaluate them on [Vector]s. \
+/// You can take its partial derivatives with the [claire_dxv!], [claire_dyv!] and [claire_dzv!] macros, adding the 'v' at the end
+/// to signal that it is the partial of a vector function, and that it returns a [Vector] as such. \
+/// Furthermore, you can use the [curl!] and [div!] macro to evaluate its rotational and divergence at a point. \
+/// ## Examples
+///
+/// use claire_vector::*;
+/// let v:VectorFunction = vector_function!(x, y, -y, x);
+/// assert_eq!(v(0., 1.), vector!(-1, 0)); // v(0, 1) = (-1, 0)
+///
+#[derive(Clone)]
+pub enum VectorFunction {
+    TwoD(_VectorFunction2D),
+    ThreeD(_VectorFunction3D),
+}
+
+impl VectorFunction {
+    fn potential(&self, args: Vec<f64>) -> f64 {
+        match self {
+            VectorFunction::TwoD(v) => {
+                if let Some(f) = &v.potential {
+                    return f(args[0], args[1]);
+                } else {
+                    f64::NAN
+                }
+            }
+            VectorFunction::ThreeD(v) => {
+                if let Some(f) = &v.potential {
+                    return f(args[0], args[1], args[2]);
+                } else {
+                    f64::NAN
+                }
+            }
+        }
+    }
+
+    pub fn potential_expression(&self) -> String {
+        match self {
+            VectorFunction::TwoD(v) => {
+                if let Some(p) = v.potential.clone() {
+                    p.expression()
+                } else {
+                    String::from("")
+                }
+            }
+            VectorFunction::ThreeD(v) => {
+                if let Some(p) = v.potential.clone() {
+                    p.expression()
+                } else {
+                    String::from("")
+                }
+            }
+        }
+    }
+}
+
+impl Display for VectorFunction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VectorFunction::TwoD(v) => {
+                write!(f, "⟨{:.5}, {:.5}⟩", v.f1.expression(), v.f2.expression())
+            }
+            VectorFunction::ThreeD(v) => {
+                write!(
+                    f,
+                    "⟨{:.5}, {:.5}, {:.5}⟩",
+                    v.f1.expression(),
+                    v.f2.expression(),
+                    v.f3.expression()
+                )
+            }
+        }
+    }
+}
+
+/// Creates vector functions
+/// # Vector Function macro
+/// This macro takes in two or three identifiers (the variable names) and two or three expressions that may use
+/// those variables, and outputs a [VectorFunction].
+/// ## Examples
+///
+/// use claire_vector::*;
+/// let F:VectorFunction = vector_function!(x, y, z, y.exp(), x + z, x*y*z);
+///
+#[macro_export]
+macro_rules! vector_function {
+    ($x:ident, $y:ident, $f1:expr, $f2:expr) => {
+        VectorFunction::TwoD(_VectorFunction2D {
+            f1: Function::F2D(_Function2D {
+                f: Box::new(|$x: f64, $y: f64| $f1),
+                expression: String::from(stringify!($f1)),
+            }),
+            f2: Function::F2D(_Function2D {
+                f: Box::new(|$x: f64, $y: f64| $f2),
+                expression: String::from(stringify!($f2)),
+            }),
+            potential: Option::None,
+        })
+    };
+    ($x:ident, $y:ident, $z:ident, $f1:expr, $f2:expr, $f3:expr) => {
+        VectorFunction::ThreeD(_VectorFunction3D {
+            f1: Function::F3D(_Function3D {
+                f: Box::new(|$x: f64, $y: f64, $z: f64| $f1),
+                expression: String::from(stringify!($f1)),
+            }),
+            f2: Function::F3D(_Function3D {
+                f: Box::new(|$x: f64, $y: f64, $z: f64| $f2),
+                expression: String::from(stringify!($f2)),
+            }),
+            f3: Function::F3D(_Function3D {
+                f: Box::new(|$x: f64, $y: f64, $z: f64| $f3),
+                expression: String::from(stringify!($f3)),
+            }),
+            potential: Option::None,
+        })
+    };
+}
+
+impl FnOnce<(f64, f64)> for VectorFunction {
+    type Output = Vector;
+
+    extern "rust-call" fn call_once(self, args: (f64, f64)) -> Self::Output {
+        match self {
+            VectorFunction::TwoD(v) => Vector::TwoD(_Vector2::new(
+                (v.f1)(args.0, args.1),
+                (v.f2)(args.0, args.1),
+            )),
+            VectorFunction::ThreeD(_) => panic!("3D vector function can't take 2 arguments"),
+        }
+    }
+}
+
+impl Fn<(f64, f64)> for VectorFunction {
+    extern "rust-call" fn call(&self, args: (f64, f64)) -> Self::Output {
+        match self {
+            VectorFunction::TwoD(v) => Vector::TwoD(_Vector2::new(
+                (v.f1)(args.0, args.1),
+                (v.f2)(args.0, args.1),
+            )),
+            VectorFunction::ThreeD(_) => panic!("3D vector function can't take 2 arguments"),
+        }
+    }
+}
+
+impl FnMut<(f64, f64)> for VectorFunction {
+    extern "rust-call" fn call_mut(&mut self, args: (f64, f64)) -> Self::Output {
+        match self {
+            VectorFunction::TwoD(v) => Vector::TwoD(_Vector2::new(
+                (v.f1)(args.0, args.1),
+                (v.f2)(args.0, args.1),
+            )),
+            VectorFunction::ThreeD(_) => panic!("3D vector function can't take 2 arguments"),
+        }
+    }
+}
+
+impl FnOnce<(f64, f64, f64)> for VectorFunction {
+    type Output = Vector;
+
+    extern "rust-call" fn call_once(self, args: (f64, f64, f64)) -> Self::Output {
+        match self {
+            VectorFunction::TwoD(_) => panic!("2D vector function can't take 3 arguments"),
+            VectorFunction::ThreeD(v) => Vector::ThreeD(_Vector3::new(
+                (v.f1)(args.0, args.1, args.2),
+                (v.f2)(args.0, args.1, args.2),
+                (v.f3)(args.0, args.1, args.2),
+            )),
+        }
+    }
+}
+
+impl Fn<(f64, f64, f64)> for VectorFunction {
+    extern "rust-call" fn call(&self, args: (f64, f64, f64)) -> Self::Output {
+        match self {
+            VectorFunction::TwoD(_) => panic!("2D vector function can't take 3 arguments"),
+            VectorFunction::ThreeD(v) => Vector::ThreeD(_Vector3::new(
+                (v.f1)(args.0, args.1, args.2),
+                (v.f2)(args.0, args.1, args.2),
+                (v.f3)(args.0, args.1, args.2),
+            )),
+        }
+    }
+}
+
+impl FnMut<(f64, f64, f64)> for VectorFunction {
+    extern "rust-call" fn call_mut(&mut self, args: (f64, f64, f64)) -> Self::Output {
+        match self {
+            VectorFunction::TwoD(_) => panic!("2D vector function can't take 3 arguments"),
+            VectorFunction::ThreeD(v) => Vector::ThreeD(_Vector3::new(
+                (v.f1)(args.0, args.1, args.2),
+                (v.f2)(args.0, args.1, args.2),
+                (v.f3)(args.0, args.1, args.2),
+            )),
+        }
+    }
+}
+
+impl FnOnce<(Vector,)> for VectorFunction {
+    type Output = Vector;
+
+    extern "rust-call" fn call_once(self, args: (Vector,)) -> Self::Output {
+        match self {
+            VectorFunction::TwoD(f) => match args.0 {
+                Vector::TwoD(v) => Vector::TwoD(_Vector2::new((f.f1)(v.x, v.y), (f.f2)(v.x, v.y))),
+                Vector::ThreeD(_) => panic!("3D vector passed to 2D vector function"),
+            },
+            VectorFunction::ThreeD(f) => match args.0 {
+                Vector::TwoD(v) => Vector::ThreeD(_Vector3::new(
+                    (f.f1)(v.x, v.y, 0.),
+                    (f.f2)(v.x, v.y, 0.),
+                    (f.f3)(v.x, v.y, 0.),
+                )),
+                Vector::ThreeD(v) => Vector::ThreeD(_Vector3::new(
+                    (f.f1)(v.x, v.y, v.z),
+                    (f.f2)(v.x, v.y, v.z),
+                    (f.f3)(v.x, v.y, v.z),
+                )),
+            },
+        }
+    }
+}
+
+impl Fn<(Vector,)> for VectorFunction {
+    extern "rust-call" fn call(&self, args: (Vector,)) -> Self::Output {
+        match self {
+            VectorFunction::TwoD(f) => match args.0 {
+                Vector::TwoD(v) => Vector::TwoD(_Vector2::new((f.f1)(v.x, v.y), (f.f2)(v.x, v.y))),
+                Vector::ThreeD(_) => panic!("3D vector passed to 2D vector function"),
+            },
+            VectorFunction::ThreeD(f) => match args.0 {
+                Vector::TwoD(v) => Vector::ThreeD(_Vector3::new(
+                    (f.f1)(v.x, v.y, 0.),
+                    (f.f2)(v.x, v.y, 0.),
+                    (f.f3)(v.x, v.y, 0.),
+                )),
+                Vector::ThreeD(v) => Vector::ThreeD(_Vector3::new(
+                    (f.f1)(v.x, v.y, v.z),
+                    (f.f2)(v.x, v.y, v.z),
+                    (f.f3)(v.x, v.y, v.z),
+                )),
+            },
+        }
+    }
+}
+
+impl FnMut<(Vector,)> for VectorFunction {
+    extern "rust-call" fn call_mut(&mut self, args: (Vector,)) -> Self::Output {
+        match self {
+            VectorFunction::TwoD(f) => match args.0 {
+                Vector::TwoD(v) => Vector::TwoD(_Vector2::new((f.f1)(v.x, v.y), (f.f2)(v.x, v.y))),
+                Vector::ThreeD(_) => panic!("3D vector passed to 2D vector function"),
+            },
+            VectorFunction::ThreeD(f) => match args.0 {
+                Vector::TwoD(v) => Vector::ThreeD(_Vector3::new(
+                    (f.f1)(v.x, v.y, 0.),
+                    (f.f2)(v.x, v.y, 0.),
+                    (f.f3)(v.x, v.y, 0.),
+                )),
+                Vector::ThreeD(v) => Vector::ThreeD(_Vector3::new(
+                    (f.f1)(v.x, v.y, v.z),
+                    (f.f2)(v.x, v.y, v.z),
+                    (f.f3)(v.x, v.y, v.z),
+                )),
+            },
+        }
+    }
+}
+
+// Partial Derivatives
+#[doc(hidden)]
+pub fn ddx_v(v: &VectorFunction, args: Vec<f64>) -> Vector {
+    match v {
+        VectorFunction::TwoD(v) => Vector::TwoD(_Vector2::new(
+            ((v.f1)(args[0] + Δ, args[1]) - (v.f1)(args[0], args[1])) / Δ,
+            ((v.f2)(args[0] + Δ, args[1]) - (v.f2)(args[0], args[1])) / Δ,
+        )),
+        VectorFunction::ThreeD(v) => Vector::ThreeD(_Vector3::new(
+            ((v.f1)(args[0] + Δ, args[1], args[2]) - (v.f1)(args[0], args[1], args[2])) / Δ,
+            ((v.f2)(args[0] + Δ, args[1], args[2]) - (v.f2)(args[0], args[1], args[2])) / Δ,
+            ((v.f3)(args[0] + Δ, args[1], args[2]) - (v.f3)(args[0], args[1], args[2])) / Δ,
+        )),
+    }
+}
+
+#[doc(hidden)]
+pub fn ddy_v(v: &VectorFunction, args: Vec<f64>) -> Vector {
+    match v {
+        VectorFunction::TwoD(v) => Vector::TwoD(_Vector2::new(
+            ((v.f1)(args[0], args[1] + Δ) - (v.f1)(args[0], args[1])) / Δ,
+            ((v.f2)(args[0], args[1] + Δ) - (v.f2)(args[0], args[1])) / Δ,
+        )),
+        VectorFunction::ThreeD(v) => Vector::ThreeD(_Vector3::new(
+            ((v.f1)(args[0], args[1] + Δ, args[2]) - (v.f1)(args[0], args[1], args[2])) / Δ,
+            ((v.f2)(args[0], args[1] + Δ, args[2]) - (v.f2)(args[0], args[1], args[2])) / Δ,
+            ((v.f3)(args[0], args[1] + Δ, args[2]) - (v.f3)(args[0], args[1], args[2])) / Δ,
+        )),
+    }
+}
+
+#[doc(hidden)]
+pub fn ddz_v(v: &VectorFunction, args: Vec<f64>) -> Vector {
+    match v {
+        VectorFunction::TwoD(_) => {
+            panic!("Can't take partial with respect to z of a 2D vector function")
+        }
+        VectorFunction::ThreeD(v) => Vector::ThreeD(_Vector3::new(
+            ((v.f1)(args[0], args[1], args[2] + Δ) - (v.f1)(args[0], args[1], args[2])) / Δ,
+            ((v.f2)(args[0], args[1], args[2] + Δ) - (v.f2)(args[0], args[1], args[2])) / Δ,
+            ((v.f3)(args[0], args[1], args[2] + Δ) - (v.f3)(args[0], args[1], args[2])) / Δ,
+        )),
+    }
+}
+
 // Implement more operations as needed...
 
 // Macros for vector creation and modulus calculation
@@ -425,4 +954,3 @@ macro_rules! md {
         modulus(&$v)
     };
 }
-
