@@ -924,6 +924,142 @@ pub fn ddz_v(v: &VectorFunction, args: Vec<f64>) -> Vector {
     }
 }
 
+/// Partial x for a vector function
+/// # Vector Partial x
+/// This macro takes a [VectorFunction] and n f64's representing a point
+/// and returns the derivative with respect to the first variable at that point.
+/// ## Examples
+///
+/// use claire_vector::*;
+/// let F:VectorFunction = vector_function!(x, y, -2.*y, x);
+/// let v:Vector = ddxv!(F, 2, 1.);
+/// assert_eq!(v, vector!(0, 0.9999999999621422)); // Analytically, it's (0, 1)
+///
+#[macro_export]
+macro_rules! ddxv {
+    ($f:expr, $x:expr, $y:expr) => {
+        ddx_v(&$f, vec![$x as f64, $y as f64])
+    };
+    ($f:expr, $x:expr, $y:expr, $z:expr) => {
+        ddx_v(&$f, vec![$x as f64, $y as f64, $z as f64])
+    };
+}
+
+/// Partial y for a vector function
+/// # Vector Partial y
+/// This macro takes a [VectorFunction] and n f64's representing a point
+/// and returns the derivative with respect to the second variable at that point.
+/// ## Examples
+///
+/// use claire_vector::*;
+/// let F:VectorFunction = vector_function!(x, y, -2.*y, x);
+/// let v:Vector = ddyv!(F, 2, 1.);
+/// assert_eq!(v, vector!(-2.0000000000131024, 0)); // Analytically, it's (-2, 0)
+///
+#[macro_export]
+macro_rules! ddyv {
+    ($f:expr, $x:expr, $y:expr) => {
+        ddy_v(&$f, vec![$x as f64, $y as f64])
+    };
+    ($f:expr, $x:expr, $y:expr, $z:expr) => {
+        ddy_v(&$f, vec![$x as f64, $y as f64, $z as f64])
+    };
+}
+
+/// Partial z for a vector function
+/// # Vector Partial z
+/// This macro takes a [VectorFunction] and n f64's representing a point
+/// and returns the derivative with respect to the third variable at that point.
+/// ## Examples
+///
+/// use claire_vector::*;
+/// let F:VectorFunction = vector_function!(x, y, z, x, y, z.powi(2));
+/// let v:Vector = ddzv!(F, 2, 1, 2);
+/// assert_eq!(v, vector!(0, 0, 4.000004999760165)); // Analytically, it's (0, 0, 4)
+///
+#[macro_export]
+macro_rules! ddzv {
+    ($f:expr, $x:expr, $y:expr, $z:expr) => {
+        ddz_v(&$f, vec![$x as f64, $y as f64, $z as f64])
+    };
+}
+
+// Curl
+#[doc(hidden)]
+pub fn curl(v: &VectorFunction, args: Vec<f64>) -> Vector {
+    match v {
+        VectorFunction::TwoD(_) => {
+            let (x, y) = (args[0], args[1]);
+            vector!(0, 0, ddx_v(v, vec![x, y]).y() - ddy_v(v, vec![x, y]).x())
+        }
+        VectorFunction::ThreeD(_) => {
+            let (x, y, z) = (args[0], args[1], args[2]);
+            vector!(
+                ddy_v(v, vec![x, y, z]).z() - ddz_v(v, vec![x, y, z]).y(),
+                ddz_v(v, vec![x, y, z]).x() - ddx_v(v, vec![x, y, z]).z(),
+                ddx_v(v, vec![x, y, z]).y() - ddy_v(v, vec![x, y, z]).x()
+            )
+        }
+    }
+}
+
+/// Curl of a vector function at a point
+/// # Curl
+/// The curl macro takes in a [VectorFunction] and n f64's representing the point to evaluate, and
+/// returns a vector with the result of applying the rotational operator to it.
+/// ## Examples
+///
+/// use claire_vector::*;
+/// let f = vector_function!(x, y, -y, x);
+/// let c:Vector = curl!(f, 2, 3);
+/// assert_eq!(c, vector!(0, 0, 1.9999999999242843)) // Analytically its (0, 0, 2)
+///
+#[macro_export]
+macro_rules! curl {
+    ($v:expr, $x:expr, $y:expr) => {
+        curl(&$v, vec![$x as f64, $y as f64])
+    };
+    ($v:expr, $x:expr, $y:expr, $z:expr) => {
+        curl(&$v, vec![$x as f64, $y as f64, $z as f64])
+    };
+}
+
+// Div
+#[doc(hidden)]
+pub fn div(v: &VectorFunction, args: Vec<f64>) -> f64 {
+    match v {
+        VectorFunction::TwoD(_) => {
+            let (x, y) = (args[0], args[1]);
+            ddx_v(v, vec![x, y]).x() + ddy_v(v, vec![x, y]).y()
+        }
+        VectorFunction::ThreeD(_) => {
+            let (x, y, z) = (args[0], args[1], args[2]);
+            ddx_v(v, vec![x, y, z]).x() + ddy_v(v, vec![x, y, z]).y() + ddz_v(v, vec![x, y, z]).z()
+        }
+    }
+}
+
+/// Divergence of a vector function at a point
+/// # Divergence
+/// The divergence macro takes a [VectorFunction] and n f64's representing the point to evaluate,
+/// and returns a f64 as the result of applying the divergence operator to the function at that point.
+/// ## Examples
+///
+/// use claire_vector::*;
+/// let f = vector_function!(x, y, 2.*x, 2.*y);
+/// let a:f64 = div!(f, 0, 0);
+/// assert_eq!(a, 4.);
+///
+#[macro_export]
+macro_rules! div {
+    ($v:expr, $x:expr, $y:expr) => {
+        div(&$v, vec![$x as f64, $y as f64])
+    };
+    ($v:expr, $x:expr, $y:expr, $z:expr) => {
+        div(&$v, vec![$x as f64, $y as f64, $z as f64])
+    };
+}
+
 // Implement more operations as needed...
 
 // Macros for vector creation and modulus calculation
