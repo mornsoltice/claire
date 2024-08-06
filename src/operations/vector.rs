@@ -368,6 +368,16 @@ pub fn ddz_s(f: &Function, args: Vec<f64>) -> f64 {
 
 // Macros for partial derivatives
 #[macro_export]
+macro_rules! vector {
+    ($x:expr, $y:expr) => {
+        Vector::new_2d($x as f64, $y as f64)
+    };
+    ($x:expr, $y:expr, $z:expr) => {
+        Vector::new_3d($x as f64, $y as f64, $z as f64)
+    };
+}
+
+#[macro_export]
 macro_rules! claire_pdx {
     ($f:expr, $x:expr) => {
         ddx_s(&$f, vec![$x as f64])
@@ -1063,15 +1073,6 @@ macro_rules! div {
 // Implement more operations as needed...
 
 // Macros for vector creation and modulus calculation
-#[macro_export]
-macro_rules! vector {
-    ($x:expr, $y:expr) => {
-        Vector::new_2d($x as f64, $y as f64)
-    };
-    ($x:expr, $y:expr, $z:expr) => {
-        Vector::new_3d($x as f64, $y as f64, $z as f64)
-    };
-}
 
 #[macro_export]
 macro_rules! md {
